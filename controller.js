@@ -10,6 +10,31 @@ exports.getAllTickets = async (req, res) => {
   }
 };
 
+// Controller untuk menyimpan data ke daily_log berdasarkan nama
+exports.createDailyLog = (req, res) => {
+  const { nama, tanggal, judul_act, deskripsi_act, catatan } = req.body;
+
+  // Memanggil getUserAssign untuk mendapatkan NIK berdasarkan nama
+  ticketService.getUserAssign(nama)
+    .then((NIK) => {
+      // Setelah mendapatkan NIK, simpan data ke daily_log
+      return ticketService.insertDailyLog(NIK, tanggal, judul_act, deskripsi_act, catatan);
+    })
+    .then(result => {
+      res.status(201).json({
+        message: 'Data successfully inserted',
+        result: result
+      });
+    })
+    .catch(err => {
+      console.error('Error:', err);
+      res.status(500).json({
+        message: 'Failed to insert data',
+        error: err
+      });
+    });
+};
+
 // Get a single ticket by id
 exports.getTicketById = async (req, res) => {
   try {
