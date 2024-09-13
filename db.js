@@ -43,6 +43,8 @@ exports.getUserAssign = (nama) => {
   });
 };
 
+
+
 // Fungsi untuk menambahkan data ke dalam daily_log
 exports.insertDailyLog = (NIK, tanggal, judul_act, deskripsi_act, catatan) => {
   return new Promise((resolve, reject) => {

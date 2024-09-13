@@ -10,29 +10,43 @@ exports.getAllTickets = async (req, res) => {
   }
 };
 
-// Controller untuk menyimpan data ke daily_log berdasarkan nama
-exports.createDailyLog = (req, res) => {
-  const { nama, tanggal, judul_act, deskripsi_act, catatan } = req.body;
 
-  // Memanggil getUserAssign untuk mendapatkan NIK berdasarkan nama
-  ticketService.getUserAssign(nama)
-    .then((NIK) => {
-      // Setelah mendapatkan NIK, simpan data ke daily_log
-      return ticketService.insertDailyLog(NIK, tanggal, judul_act, deskripsi_act, catatan);
-    })
-    .then(result => {
-      res.status(201).json({
-        message: 'Data successfully inserted',
-        result: result
-      });
-    })
-    .catch(err => {
-      console.error('Error:', err);
-      res.status(500).json({
-        message: 'Failed to insert data',
-        error: err
-      });
+// Controller untuk menyimpan data ke daily_log berdasarkan nama
+exports.createDailyLog = async (req, res) => {
+  const { ticketId } = req.body;
+  try {
+    // Get ticket details
+    let ticket = await ticketService.getTicketById(ticketId);
+    ticket = ticket[0];
+
+    // Format the date
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const year = now.getFullYear();
+    const formattedDate = `${year}-${month}-${day}`;
+
+    // Get NIK
+    const nik = await ticketService.getUserAssign(ticket.assigned);
+
+    // Prepare data for insertion
+    const data = [nik, formattedDate, `Penambahan Fitur ${ticket.nama_fitur}`, String(ticket.Deskripsi), String(ticket.Status)];
+
+    // Insert data into daily_log
+    const result = await ticketService.insertDailyLog(...data);
+
+    // Send response
+    res.status(201).json({
+      message: 'Data successfully inserted',
+      result: result
     });
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({
+      message: 'Failed to insert data',
+      error: err
+    });
+  }
 };
 
 // Get a single ticket by id
